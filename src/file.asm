@@ -13,10 +13,15 @@ extrn PrintMessage:far
 extrn SetMousePosition:far
 
 .data
-    filename db "text", 0
-    buffer db 100 dup(?)
-    bytes_read dw ?
-    error_message db "Error opening file!", '$'
+    filename                db "..\files\text.txt"
+    handle                  dw 0
+    buffer                  db 512 dup(0)
+    buffer_string           db 512 dup(0)
+    open_error_message      db "Error opening file!", '$'
+    read_error_message      db "Error reading file!", '$'
+    at_symbol               db '@'
+    exclude_symbols         db '!"#%&''()*+-/:;<=>?[\]^_`{|}~', '$'
+    exclude_symbols_len     equ $ - offset exclude_symbols
 
 .code
 
@@ -29,39 +34,82 @@ extrn SetMousePosition:far
 ; DS:DX = address of buffer
 ;
 OpenFile proc far
-    mov ah, 3dh         ; open a file
-    lea dx, filename    ; load address of file
-    mov al, 0           ; read only
+    mov ah, 3Dh                 ; open a file
+    mov al, 0                   ; read only
+    lea dx, filename            ; load address of file
     int 21h
-    jc error
+    ; jc open_error
 
-    mov bx, ax          ; save file handle
+    mov handle, ax              ; save file handle
+    xor si, si                  ; clear si
 
-    mov ah, 3fh         ; read from file
-    mov cx, 100         ; number of bytes to read
-    lea dx, buffer      ; load address of buffer
+read_loop:
+    mov ah, 3Fh                 ; read from file
+    mov bx, handle              ; file handle
+    mov cx, 1                   ; number of bytes to read
+    lea dx, buffer              ; load address of buffer
     int 21h
-    jc error
+    jc read_error
 
-    mov bytes_read, ax  ; save number of bytes read
-    mov ah, 3eh         ; close file
+    lea di, exclude_symbols
+    mov cx, exclude_symbols_len
+
+    mov al, [buffer]
+
+check_symbols:
+    cmp al, [di]
+    je skip_char
+    inc di
+    loop check_symbols
+
+    cmp al, at_symbol
+    je check_at_symbol
+
+    mov [buffer_string + si], al
+    inc si
+
+skip_char:
+    jmp read_loop
+
+check_at_symbol:
+    mov al, at_symbol
+    mov [buffer_string + si], al 
+    inc si
+    cmp al, '$'
+
+    mov dh, 1
+    mov dl, 0
+    call SetMousePosition
+
+    mov dx, offset buffer_string
+    call PrintMessage
+    je done_reading
+
+done_reading:
+    mov ah, 3Eh                 ; close file
+    mov bx, handle              ; file handle
     int 21h
+    jmp return
 
+open_error:  
     mov dh, 0
     mov dl, 0
     call SetMousePosition
 
-    mov dx, offset buffer
+    mov dx, offset open_error_message
     call PrintMessage
-    ret
+    jmp return
 
-error:  
+read_error:
     mov dh, 0
     mov dl, 0
     call SetMousePosition
 
-    mov dx, offset error_message
+    mov dx, offset read_error_message
     call PrintMessage
+    jmp return
+
+return:
     ret
 OpenFile endp
 
