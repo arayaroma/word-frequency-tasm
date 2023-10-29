@@ -13,35 +13,49 @@ extrn OpenFile:far
 extrn PrintMessage:far
 extrn ClearScreen:far
 extrn SetVideoMode:far
+extrn ShowMessage:far
 
 ; mouse.asm
 extrn SetMousePosition:far
 extrn ShowMouse:far
 
 .data
-word_frequency db "-[Word Frequency]-", '$'
-axis_x db ?
-axis_y db ?
+    word_frequency  db "-[Word Frequency]-", '$'
+    axis_x          db ?
+    axis_y          db ?
 
 .code
 
+; WordCounterDriver
+;
+; Main program
+;
 WordCounterDriver proc far
     call SetVideoMode
     call ClearScreen
+    call PrintWordFrequencyTitle
+    call OpenFile
+    ret
+WordCounterDriver endp
 
-    mov axis_x, 0
-    mov axis_y, 30
+; PrintWordFrequencyTitle
+;
+; Print the title of the program
+;
+PrintWordFrequencyTitle proc near
+    ; push 0
+    ; push 30
+    ; push offset word_frequency
+    ; call ShowMessage
+    ; add sp, 6
 
-    mov dh, [axis_x]
-    mov dl, [axis_y]
+    mov dh, 0
+    mov dl, 30
     call SetMousePosition
 
     mov dx, offset word_frequency
     call PrintMessage
-
-    call OpenFile
-
     ret
-WordCounterDriver endp
+PrintWordFrequencyTitle endp
 
 end

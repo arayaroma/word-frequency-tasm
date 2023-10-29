@@ -3,7 +3,10 @@
 ;
 .8086
 .model small
-public ClearScreen, PrintMessage, SetVideoMode
+public ClearScreen, PrintMessage, SetVideoMode, ShowMessage
+
+; mouse.asm
+extrn SetMousePosition:far
 
 .data
 
@@ -44,5 +47,18 @@ PrintMessage proc far
     int 21H
     ret
 PrintMessage endp
+
+ShowMessage proc far
+    push bp
+    mov bp, sp
+    mov dh, [bp + 4]
+    mov dl, [bp + 6]
+    call SetMousePosition
+
+    mov dx, [bp + 8] 
+    call PrintMessage
+    pop bp
+    ret
+ShowMessage endp
 
 end

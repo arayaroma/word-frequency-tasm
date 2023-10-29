@@ -12,12 +12,12 @@ public is_mouse_in, mouseStatus
 extrn PrintMessage:far
 
 .data
-mouseXText db "Mouse X: ", '$'
-mouseYText db "Mouse Y: ", '$'
-mouseX dw 0
-mouseY dw 0
-mouseStatus dw ?
-is_mouse_in dw ?
+    mouseXText      db "Mouse X: ", '$'
+    mouseYText      db "Mouse Y: ", '$'
+    mouseX          dw 0
+    mouseY          dw 0
+    mouseStatus     dw ?
+    is_mouse_in     dw ?
 
 .code
 
