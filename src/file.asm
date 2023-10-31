@@ -5,6 +5,8 @@
 .model small
 
 public OpenFile
+public exclude_letters, exclude_letters_len
+public buffer, buffer_string
 
 ; graphic.asm
 extrn PrintMessage:far
@@ -82,9 +84,11 @@ read_loop:
 check_symbols:
     cmp al, [di]
     je skip_char
+    jne next_char
     inc di
     loop check_symbols
 
+next_char:
     mov [buffer_string + si], al
     inc si
 
@@ -133,7 +137,7 @@ CloseFile endp
 ; Print buffer message
 ;
 PrintMessageBuffer proc near
-    mov dh, 2
+    mov dh, 5
     mov dl, 0
     call SetMousePosition
 
