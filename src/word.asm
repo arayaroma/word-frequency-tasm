@@ -9,6 +9,10 @@ public WordCounterDriver
 ; ascii.asm
 extrn ConvertToASCII:far
 
+; mouse.asm
+extrn SetMousePosition:far
+extrn ShowMouse:far
+
 ; graphic.asm
 extrn PrintMessage:far
 extrn ClearScreen:far
@@ -22,10 +26,6 @@ extrn exclude_letters_len
 extrn buffer
 extrn buffer_string
 
-; mouse.asm
-extrn SetMousePosition:far
-extrn ShowMouse:far
-
 .data
     word_frequency_title    db "-[Word Frequency]-", '$'
     word_frequency          db "Words: ", '$' 
@@ -33,7 +33,7 @@ extrn ShowMouse:far
     axis_x                  db ?
     axis_y                  db ?
     letters_count           dw 0
-    words_count             db 0
+    words_count             dw 0
 
 .code
 
@@ -44,12 +44,15 @@ extrn ShowMouse:far
 WordCounterDriver proc far
     call SetVideoMode
     call ClearScreen
+
     call PrintWordFrequencyTitle
     call OpenFile
 
     call CountLetters
     call PrintLetterFrequency
 
+    call CountWords
+    call PrintWordFrequency
     ret
 WordCounterDriver endp
 
@@ -67,23 +70,47 @@ PrintWordFrequencyTitle proc near
     ret
 PrintWordFrequencyTitle endp
 
+; PrintLetterFrequency
+;
+; Print the number of letters in a buffer
+;
 PrintLetterFrequency proc near
     mov dh, 1
-    mov dl, 30
+    mov dl, 32
     call SetMousePosition
 
     mov dx, offset letter_frequency
     call PrintMessage
 
     mov dh, 1
-    mov dl, 42
+    mov dl, 43
     call SetMousePosition
 
     mov ax, [letters_count]
     call ConvertToASCII
-
     ret
 PrintLetterFrequency endp
+
+; PrintWordFrequency
+;
+; Print the number of words in a buffer
+;
+PrintWordFrequency proc near
+    mov dh, 2
+    mov dl, 32
+    call SetMousePosition
+
+    mov dx, offset word_frequency
+    call PrintMessage
+
+    mov dh, 2
+    mov dl, 43
+    call SetMousePosition
+
+    mov ax, [words_count]
+    call ConvertToASCII
+    ret
+PrintWordFrequency endp
 
 ; CountLetters
 ;
@@ -96,7 +123,10 @@ CountLetters proc near
 
 read_buffer:
     mov al, [si]
-    cmp al, '$'
+    cmp al, ' '
+    je skip_letter
+
+    cmp al, '@'
     je end_of_string
 
 check_exclude_letters:
@@ -111,8 +141,8 @@ skip_letter:
     jmp read_buffer
 
 end_of_string:
+    inc cx
     mov [letters_count], cx
-    sub letters_count, 47h
     ret 
 CountLetters endp
 
@@ -124,12 +154,32 @@ CountWords proc near
     mov si, offset buffer_string
     xor cx, cx
 
-read_buffer:
+read_word_buffer:
     mov al, [si]
     cmp al, '$'
     je return
 
+    cmp al, '.'
+    je skip_space
+
+    cmp al, ','
+    je skip_space
+
+    cmp al, ' '
+    je skip_space
+    jne next_char
+
+skip_space:
+    inc si
+    inc cx
+    jmp read_word_buffer
+
+next_char:
+    inc si
+    jmp read_word_buffer
+
 return:
+    mov [words_count], cx
     ret
 CountWords endp
 

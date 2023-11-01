@@ -8,8 +8,6 @@ public ClearScreen, PrintMessage, SetVideoMode, ShowMessage
 ; mouse.asm
 extrn SetMousePosition:far
 
-.data
-
 .code
 
 ;   SetVideoMode

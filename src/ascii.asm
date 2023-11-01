@@ -6,7 +6,7 @@
 public ConvertToASCII, DisplayASCII, ascii_buffer
 
 .data
-ascii_buffer db 12 dup(0)
+    ascii_buffer db 12 dup(0)
 
 .code
 
