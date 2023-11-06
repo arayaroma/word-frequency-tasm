@@ -3,9 +3,10 @@
 ;
 .8086
 .model small
-public IsMouseIn
+public IsMouseIn, ClearOffset
 public ShowMouse, HideMouse, SetMousePosition, GetMousePosition
 public mouseX, mouseY, mouseXText, mouseYText
+public x_offset, y_offset
 public is_mouse_in, mouseStatus
 
 ; graphics.asm
@@ -16,6 +17,8 @@ extrn PrintMessage:far
     mouseYText      db "Mouse Y: ", '$'
     mouseX          dw 0
     mouseY          dw 0
+    x_offset        db 0
+    y_offset        db 0
     mouseStatus     dw ?
     is_mouse_in     dw ?
 
@@ -116,5 +119,14 @@ return:
     pop bp
     ret
 IsMouseIn endp
+
+ClearOffset proc far
+    mov x_offset, 0
+    mov y_offset, 0
+    mov dh, [x_offset]
+    mov dl, [y_offset]
+    call SetMousePosition
+    ret
+ClearOffset endp
 
 end

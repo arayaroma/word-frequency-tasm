@@ -4,9 +4,10 @@
 .8086
 .model small
 
-public OpenFile
+public OpenFile, filename
 public exclude_letters, exclude_letters_len
 public buffer, buffer_string
+public is_open_error, is_read_error
 
 ; graphic.asm
 extrn PrintMessage:far
@@ -15,10 +16,12 @@ extrn PrintMessage:far
 extrn SetMousePosition:far
 
 .data
-    filename                db "..\files\text.txt"
+    filename                db 30 dup(0)
     handle                  dw 0
-    buffer                  db 450 dup(0)
-    buffer_string           db 450 dup(0)
+    buffer                  db 400 dup(0)
+    buffer_string           db 400 dup(0)
+    is_open_error           db ?
+    is_read_error           db ?
     open_error_message      db "Error opening file!", '$'
     read_error_message      db "Error reading file!", '$'
     at_symbol               db '@'
@@ -151,6 +154,7 @@ PrintMessageBuffer endp
 ; Show error message when reading file
 ;
 ReadError proc near
+    mov [is_read_error], 1
     mov dh, 0
     mov dl, 0
     call SetMousePosition
@@ -165,6 +169,7 @@ ReadError endp
 ; Show error message when opening a file
 ;
 OpenError proc near
+    mov [is_open_error], 1
     mov dh, 0
     mov dl, 0
     call SetMousePosition
